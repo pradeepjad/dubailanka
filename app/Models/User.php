@@ -21,6 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
     ];
 
@@ -44,6 +45,40 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'suspended_at' => 'datetime',
+            'closed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Determine whether the account is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Determine whether the account is suspended.
+     */
+    public function isSuspended(): bool
+    {
+        return $this->status === 'suspended';
+    }
+
+    /**
+     * Determine whether the account is closed.
+     */
+    public function isClosed(): bool
+    {
+        return $this->status === 'closed';
+    }
+
+    /**
+     * Determine whether the account currently has a password.
+     */
+    public function hasPassword(): bool
+    {
+        return ! empty($this->password);
     }
 }
