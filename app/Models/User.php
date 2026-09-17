@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -86,6 +87,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Store::class, 'store_users')
             ->withPivot(['role', 'is_primary_owner'])
             ->withTimestamps();
+    }
+
+    public function platformAdmin(): HasOne
+    {
+        return $this->hasOne(PlatformAdmin::class);
     }
 
     /**

@@ -15,6 +15,12 @@ class Store extends Model
     use HasFactory, SoftDeletes;
 
     public const STATUS_DRAFT = 'draft';
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_UNDER_REVIEW = 'under_review';
+    public const STATUS_NEEDS_CHANGES = 'needs_changes';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_SUSPENDED = 'suspended';
 
     protected $fillable = [
         'business_entity_id', 'name', 'slug', 'description', 'country_code',
@@ -32,6 +38,11 @@ class Store extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(StoreUser::class);
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(StoreStatusHistory::class)->latest();
     }
 
     public function users(): BelongsToMany

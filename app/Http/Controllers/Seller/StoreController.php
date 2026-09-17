@@ -43,6 +43,7 @@ class StoreController extends Controller
     public function edit(Request $request, Store $store): Response
     {
         $this->ensureStoreAccess($request, $store);
+        abort_unless(in_array($store->status, [Store::STATUS_DRAFT, Store::STATUS_NEEDS_CHANGES], true), 403, 'This store cannot be edited while it is in review.');
 
         return Inertia::render('Seller/Store/Wizard', [
             'businesses' => $this->businessOptions($request),
@@ -54,6 +55,7 @@ class StoreController extends Controller
     public function update(StoreStoreRequest $request, Store $store, SaveStoreDraft $saveStoreDraft): RedirectResponse
     {
         $this->ensureStoreAccess($request, $store);
+        abort_unless(in_array($store->status, [Store::STATUS_DRAFT, Store::STATUS_NEEDS_CHANGES], true), 403, 'This store cannot be edited while it is in review.');
         $this->ensureBusinessAccess($request, (int) $request->validated('business_entity_id'));
         $saveStoreDraft->execute($request->user(), $request->validated(), $store);
 

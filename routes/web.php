@@ -7,6 +7,9 @@ use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Seller\BusinessEntityController;
 use App\Http\Controllers\Seller\DashboardController;
 use App\Http\Controllers\Seller\StoreController;
+use App\Http\Controllers\Seller\StoreSubmissionController;
+use App\Http\Controllers\Admin\StoreModerationController;
+use App\Http\Middleware\EnsurePlatformAdmin;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -35,6 +38,17 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password/cancel', [PasswordResetController::class, 'cancel'])->name('password.otp.cancel');
 });
 
+Route::middleware(['auth', EnsurePlatformAdmin::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/stores', [StoreModerationController::class, 'index'])->name('stores.index');
+    Route::get('/stores/{store}', [StoreModerationController::class, 'show'])->name('stores.show');
+    Route::post('/stores/{store}/start-review', [StoreModerationController::class, 'start'])->name('stores.start-review');
+    Route::post('/stores/{store}/approve', [StoreModerationController::class, 'approve'])->name('stores.approve');
+    Route::post('/stores/{store}/needs-changes', [StoreModerationController::class, 'needsChanges'])->name('stores.needs-changes');
+    Route::post('/stores/{store}/reject', [StoreModerationController::class, 'reject'])->name('stores.reject');
+    Route::post('/stores/{store}/suspend', [StoreModerationController::class, 'suspend'])->name('stores.suspend');
+    Route::post('/stores/{store}/reactivate', [StoreModerationController::class, 'reactivate'])->name('stores.reactivate');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/account/suspended', fn () => Inertia::render('Auth/Suspended'))->name('account.suspended');
     Route::post('/logout', LogoutController::class)->name('logout');
@@ -50,5 +64,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/stores', [StoreController::class, 'store'])->name('stores.store');
         Route::get('/stores/{store}/edit', [StoreController::class, 'edit'])->name('stores.edit');
         Route::put('/stores/{store}', [StoreController::class, 'update'])->name('stores.update');
+        Route::post('/stores/{store}/submit', [StoreSubmissionController::class, 'submit'])->name('stores.submit');
+        Route::post('/stores/{store}/withdraw', [StoreSubmissionController::class, 'withdraw'])->name('stores.withdraw');
     });
 });

@@ -13,7 +13,7 @@ class DashboardController extends Controller
     public function __invoke(Request $request): Response
     {
         $stores = $request->user()->stores()
-            ->with('businessEntity:id,legal_name,trading_name')
+            ->with(['businessEntity:id,legal_name,trading_name','statusHistories'=>fn($q)=>$q->limit(1)])
             ->orderBy('stores.name')
             ->get(['stores.id', 'stores.business_entity_id', 'stores.name', 'stores.slug', 'stores.status', 'stores.logo_path'])
             ->map(fn (Store $store) => [
@@ -25,6 +25,7 @@ class DashboardController extends Controller
                 'business_name' => $store->businessEntity->trading_name ?: $store->businessEntity->legal_name,
                 'role' => $store->pivot->role,
                 'is_primary_owner' => (bool) $store->pivot->is_primary_owner,
+                'status_note' => $store->statusHistories->first()?->note,
             ])->values();
 
         $requested = $request->integer('store');
