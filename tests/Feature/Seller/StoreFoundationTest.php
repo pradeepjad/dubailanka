@@ -4,6 +4,7 @@ namespace Tests\Feature\Seller;
 
 use App\Models\BusinessEntity;
 use App\Models\Store;
+use App\Models\StoreUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -48,6 +49,12 @@ class StoreFoundationTest extends TestCase
     {
         $user=User::factory()->create(); $business=$this->businessFor($user);
         $store=Store::create(['business_entity_id'=>$business->id,'name'=>'Old Name','slug'=>'old-name','country_code'=>'AE','phone'=>'1','email'=>'old@example.com','status'=>'draft']);
+        StoreUser::create([
+            'store_id' => $store->id,
+            'user_id' => $user->id,
+            'role' => 'owner',
+            'is_primary_owner' => true,
+        ]);
         $this->actingAs($user)->put("/seller/stores/{$store->id}",['business_entity_id'=>$business->id,'name'=>'New Name','slug'=>'new-name','country_code'=>'LK','phone'=>'+94771234567','email'=>'new@example.com'])->assertRedirect(route('seller.stores.edit',$store));
         $this->assertDatabaseHas('stores',['id'=>$store->id,'name'=>'New Name','slug'=>'new-name','country_code'=>'LK']);
     }

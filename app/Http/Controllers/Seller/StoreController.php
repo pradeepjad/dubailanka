@@ -35,7 +35,7 @@ class StoreController extends Controller
     public function store(StoreStoreRequest $request, SaveStoreDraft $saveStoreDraft): RedirectResponse
     {
         $this->ensureBusinessAccess($request, (int) $request->validated('business_entity_id'));
-        $store = $saveStoreDraft->execute($request->validated());
+        $store = $saveStoreDraft->execute($request->user(), $request->validated());
 
         return to_route('seller.stores.edit', $store)->with('success', 'Store draft saved successfully. You can continue editing it anytime.');
     }
@@ -55,7 +55,7 @@ class StoreController extends Controller
     {
         $this->ensureStoreAccess($request, $store);
         $this->ensureBusinessAccess($request, (int) $request->validated('business_entity_id'));
-        $saveStoreDraft->execute($request->validated(), $store);
+        $saveStoreDraft->execute($request->user(), $request->validated(), $store);
 
         return to_route('seller.stores.edit', $store)->with('success', 'Store draft updated successfully.');
     }
@@ -97,6 +97,7 @@ class StoreController extends Controller
 
     private function ensureStoreAccess(Request $request, Store $store): void
     {
-        $this->ensureBusinessAccess($request, $store->business_entity_id);
+        abort_unless($request->user()->stores()->whereKey($store->id)->exists(), 403);
     }
 }
+

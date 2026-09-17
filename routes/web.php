@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Seller\BusinessEntityController;
+use App\Http\Controllers\Seller\DashboardController;
 use App\Http\Controllers\Seller\StoreController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -40,6 +41,7 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('seller')->name('seller.')->group(function () {
         Route::get('/start', [BusinessEntityController::class, 'index'])->name('start');
+        Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::get('/businesses/create', [BusinessEntityController::class, 'create'])->name('businesses.create');
         Route::post('/businesses', [BusinessEntityController::class, 'store'])->name('businesses.store');
 

@@ -71,6 +71,24 @@ class User extends Authenticatable
     }
 
     /**
+     * Store membership records for this account.
+     */
+    public function storeMemberships(): HasMany
+    {
+        return $this->hasMany(StoreUser::class);
+    }
+
+    /**
+     * Stores this account can access.
+     */
+    public function stores(): BelongsToMany
+    {
+        return $this->belongsToMany(Store::class, 'store_users')
+            ->withPivot(['role', 'is_primary_owner'])
+            ->withTimestamps();
+    }
+
+    /**
      * Determine whether the account is active.
      */
     public function isActive(): bool
