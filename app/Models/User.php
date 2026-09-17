@@ -7,6 +7,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -48,6 +50,24 @@ class User extends Authenticatable
             'suspended_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Business entity membership records for this account.
+     */
+    public function businessEntityMemberships(): HasMany
+    {
+        return $this->hasMany(BusinessEntityUser::class);
+    }
+
+    /**
+     * Business entities this account can access.
+     */
+    public function businessEntities(): BelongsToMany
+    {
+        return $this->belongsToMany(BusinessEntity::class, 'business_entity_users')
+            ->withPivot(['role', 'is_primary_owner'])
+            ->withTimestamps();
     }
 
     /**

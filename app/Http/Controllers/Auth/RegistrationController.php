@@ -6,13 +6,34 @@ use App\Actions\Auth\StartRegistration;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\StartRegistrationRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+use App\Models\User;
 use App\Actions\Auth\VerifyRegistrationOtp;
 use App\Http\Requests\Auth\VerifyRegistrationOtpRequest;
 use App\Actions\Auth\CompleteRegistration;
+use App\Actions\Auth\ResendRegistrationOtp;
 use App\Http\Requests\Auth\CompleteRegistrationRequest;
 
 class RegistrationController extends Controller
 {
+    public function create(Request $request): Response
+    {
+        $email = (string) $request->session()->get('pending_registration_email');
+
+        if ($email && User::query()->where('email', $email)->whereNotNull('password')->exists()) {
+            $request->session()->forget([
+                'pending_registration_name',
+                'pending_registration_email',
+                'registration_verified',
+                'registration_verified_email',
+            ]);
+        }
+
+        return Inertia::render('Auth/Register');
+    }
+
     /**
      * Start a new registration or continue an existing
      * lightweight account registration.
@@ -59,6 +80,23 @@ class RegistrationController extends Controller
         return back()->with([
             'registration_otp_verified' => true,
         ]);
+    }
+
+    public function resend(ResendRegistrationOtp $resend): RedirectResponse
+    {
+        $resend->execute();
+        return back()->with('otp_resent', true);
+    }
+
+    public function cancel(): RedirectResponse
+    {
+        session()->forget([
+            'pending_registration_name',
+            'pending_registration_email',
+            'registration_verified',
+            'registration_verified_email',
+        ]);
+        return redirect()->route('register');
     }
 
     public function complete(

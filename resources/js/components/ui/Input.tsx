@@ -19,6 +19,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             id,
             className = "",
             disabled,
+            required,
             ...props
         },
         ref,
@@ -44,6 +45,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                         className="mb-1.5 block text-sm font-semibold text-text-primary"
                     >
                         {label}
+                        {required && (
+                            <span className="ml-1 text-danger" aria-hidden="true">
+                                *
+                            </span>
+                        )}
                     </label>
                 )}
 
@@ -61,6 +67,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                         ref={ref}
                         id={inputId}
                         disabled={disabled}
+                        required={required}
                         aria-invalid={error ? true : undefined}
                         aria-describedby={describedBy}
                         className={[

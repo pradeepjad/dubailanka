@@ -17,6 +17,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             id,
             className = "",
             disabled,
+            required,
             ...props
         },
         ref,
@@ -42,6 +43,11 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
                         className="mb-1.5 block text-sm font-semibold text-text-primary"
                     >
                         {label}
+                        {required && (
+                            <span className="ml-1 text-danger" aria-hidden="true">
+                                *
+                            </span>
+                        )}
                     </label>
                 )}
 
@@ -50,6 +56,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
                         ref={ref}
                         id={selectId}
                         disabled={disabled}
+                        required={required}
                         aria-invalid={error ? true : undefined}
                         aria-describedby={describedBy}
                         className={[
