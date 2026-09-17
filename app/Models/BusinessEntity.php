@@ -33,6 +33,11 @@ class BusinessEntity extends Model
         return $this->hasMany(BusinessEntityUser::class);
     }
 
+    public function stores(): HasMany
+    {
+        return $this->hasMany(Store::class);
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'business_entity_users')

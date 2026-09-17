@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Seller\BusinessEntityController;
+use App\Http\Controllers\Seller\StoreController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -41,5 +42,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/start', [BusinessEntityController::class, 'index'])->name('start');
         Route::get('/businesses/create', [BusinessEntityController::class, 'create'])->name('businesses.create');
         Route::post('/businesses', [BusinessEntityController::class, 'store'])->name('businesses.store');
+
+        Route::get('/stores/slug-availability', [StoreController::class, 'slugAvailability'])->name('stores.slug-availability');
+        Route::get('/stores/create', [StoreController::class, 'create'])->name('stores.create');
+        Route::post('/stores', [StoreController::class, 'store'])->name('stores.store');
+        Route::get('/stores/{store}/edit', [StoreController::class, 'edit'])->name('stores.edit');
+        Route::put('/stores/{store}', [StoreController::class, 'update'])->name('stores.update');
     });
 });

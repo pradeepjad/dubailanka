@@ -27,8 +27,14 @@ class BusinessEntityController extends Controller
                 'business_entities.status',
             ]);
 
+        $stores = \App\Models\Store::query()
+            ->whereIn('business_entity_id', $businesses->pluck('id'))
+            ->orderByDesc('updated_at')
+            ->get(['id', 'business_entity_id', 'name', 'slug', 'status', 'logo_path', 'updated_at']);
+
         return Inertia::render('Seller/Start', [
             'businesses' => $businesses,
+            'stores' => $stores,
         ]);
     }
 
