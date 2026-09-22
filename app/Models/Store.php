@@ -45,6 +45,16 @@ class Store extends Model
         return $this->hasMany(StoreStatusHistory::class)->latest();
     }
 
+    public function changeRequests(): HasMany
+    {
+        return $this->hasMany(StoreChangeRequest::class)->latest();
+    }
+
+    public function slugHistories(): HasMany
+    {
+        return $this->hasMany(StoreSlugHistory::class)->latest('changed_at');
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'store_users')

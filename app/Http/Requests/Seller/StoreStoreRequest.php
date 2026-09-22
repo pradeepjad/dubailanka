@@ -36,6 +36,28 @@ class StoreStoreRequest extends FormRequest
         ];
     }
 
+
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $slug = (string) $this->input('slug');
+            $store = $this->route('store');
+            $storeId = $store instanceof Store ? $store->id : null;
+
+            if ($slug === '' || $validator->errors()->has('slug')) return;
+
+            $historical = \App\Models\StoreSlugHistory::where('slug', $slug)->exists();
+            $pending = \App\Models\StoreChangeRequest::where('proposed_slug', $slug)
+                ->whereIn('status', ['pending', 'under_review', 'needs_changes'])
+                ->when($storeId, fn ($q) => $q->where('store_id', '!=', $storeId))
+                ->exists();
+
+            if ($historical || $pending) {
+                $validator->errors()->add('slug', 'This store address is already reserved or was previously used. Please try another one.');
+            }
+        });
+    }
+
     protected function prepareForValidation(): void
     {
         $clean = fn (string $key): ?string => ($value = trim((string) $this->input($key))) !== '' ? $value : null;

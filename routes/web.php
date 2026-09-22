@@ -9,6 +9,7 @@ use App\Http\Controllers\Seller\DashboardController;
 use App\Http\Controllers\Seller\StoreController;
 use App\Http\Controllers\Seller\StoreSubmissionController;
 use App\Http\Controllers\Admin\StoreModerationController;
+use App\Http\Controllers\Admin\StoreChangeRequestController;
 use App\Http\Middleware\EnsurePlatformAdmin;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -47,6 +48,10 @@ Route::middleware(['auth', EnsurePlatformAdmin::class])->prefix('admin')->name('
     Route::post('/stores/{store}/reject', [StoreModerationController::class, 'reject'])->name('stores.reject');
     Route::post('/stores/{store}/suspend', [StoreModerationController::class, 'suspend'])->name('stores.suspend');
     Route::post('/stores/{store}/reactivate', [StoreModerationController::class, 'reactivate'])->name('stores.reactivate');
+    Route::post('/stores/{store}/changes/start-review', [StoreChangeRequestController::class, 'start'])->name('stores.changes.start-review');
+    Route::post('/stores/{store}/changes/approve', [StoreChangeRequestController::class, 'approve'])->name('stores.changes.approve');
+    Route::post('/stores/{store}/changes/needs-changes', [StoreChangeRequestController::class, 'needsChanges'])->name('stores.changes.needs-changes');
+    Route::post('/stores/{store}/changes/reject', [StoreChangeRequestController::class, 'reject'])->name('stores.changes.reject');
 });
 
 Route::middleware('auth')->group(function () {

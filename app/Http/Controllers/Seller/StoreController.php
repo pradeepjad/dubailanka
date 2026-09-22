@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Seller;
 
+use App\Actions\Seller\SaveApprovedStoreChanges;
 use App\Actions\Seller\SaveStoreDraft;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Seller\StoreStoreRequest;
 use App\Models\BusinessEntity;
 use App\Models\Store;
+use App\Models\StoreChangeRequest;
+use App\Models\StoreSlugHistory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,6 +32,7 @@ class StoreController extends Controller
             'businesses' => $businesses,
             'selectedBusinessId' => $selectedBusinessId,
             'store' => null,
+            'pendingChange' => null,
         ]);
     }
 
@@ -43,22 +47,43 @@ class StoreController extends Controller
     public function edit(Request $request, Store $store): Response
     {
         $this->ensureStoreAccess($request, $store);
-        abort_unless(in_array($store->status, [Store::STATUS_DRAFT, Store::STATUS_NEEDS_CHANGES], true), 403, 'This store cannot be edited while it is in review.');
+        abort_unless(in_array($store->status, [Store::STATUS_DRAFT, Store::STATUS_NEEDS_CHANGES, Store::STATUS_APPROVED], true), 403, 'This store cannot be edited while it is in review.');
+
+        $pendingChange = null;
+        if ($store->status === Store::STATUS_APPROVED) {
+            $pendingChange = $store->changeRequests()
+                ->whereIn('status', [
+                    StoreChangeRequest::STATUS_PENDING,
+                    StoreChangeRequest::STATUS_UNDER_REVIEW,
+                    StoreChangeRequest::STATUS_NEEDS_CHANGES,
+                ])->first();
+        }
 
         return Inertia::render('Seller/Store/Wizard', [
             'businesses' => $this->businessOptions($request),
             'selectedBusinessId' => $store->business_entity_id,
             'store' => $store,
+            'pendingChange' => $pendingChange,
         ]);
     }
 
-    public function update(StoreStoreRequest $request, Store $store, SaveStoreDraft $saveStoreDraft): RedirectResponse
-    {
+    public function update(
+        StoreStoreRequest $request,
+        Store $store,
+        SaveStoreDraft $saveStoreDraft,
+        SaveApprovedStoreChanges $saveApprovedStoreChanges
+    ): RedirectResponse {
         $this->ensureStoreAccess($request, $store);
-        abort_unless(in_array($store->status, [Store::STATUS_DRAFT, Store::STATUS_NEEDS_CHANGES], true), 403, 'This store cannot be edited while it is in review.');
+        abort_unless(in_array($store->status, [Store::STATUS_DRAFT, Store::STATUS_NEEDS_CHANGES, Store::STATUS_APPROVED], true), 403, 'This store cannot be edited while it is in review.');
         $this->ensureBusinessAccess($request, (int) $request->validated('business_entity_id'));
-        $saveStoreDraft->execute($request->user(), $request->validated(), $store);
+        abort_unless((int) $request->validated('business_entity_id') === (int) $store->business_entity_id, 422, 'Store ownership cannot be changed from normal store editing.');
 
+        if ($store->status === Store::STATUS_APPROVED) {
+            $saveApprovedStoreChanges->execute($request->user(), $store, $request->validated());
+            return to_route('seller.stores.edit', $store)->with('success', 'Store updated. Direct changes are live immediately; identity changes were sent for Admin review.');
+        }
+
+        $saveStoreDraft->execute($request->user(), $request->validated(), $store);
         return to_route('seller.stores.edit', $store)->with('success', 'Store draft updated successfully.');
     }
 
@@ -70,9 +95,21 @@ class StoreController extends Controller
         $available = false;
 
         if ($valid) {
-            $query = Store::query()->where('slug', $slug);
-            if ($ignore) $query->whereKeyNot($ignore);
-            $available = ! $query->exists();
+            $storeQuery = Store::query()->where('slug', $slug);
+            if ($ignore) $storeQuery->whereKeyNot($ignore);
+
+            $pendingQuery = StoreChangeRequest::query()
+                ->where('proposed_slug', $slug)
+                ->whereIn('status', [
+                    StoreChangeRequest::STATUS_PENDING,
+                    StoreChangeRequest::STATUS_UNDER_REVIEW,
+                    StoreChangeRequest::STATUS_NEEDS_CHANGES,
+                ]);
+            if ($ignore) $pendingQuery->where('store_id', '!=', $ignore);
+
+            $available = ! $storeQuery->exists()
+                && ! StoreSlugHistory::where('slug', $slug)->exists()
+                && ! $pendingQuery->exists();
         }
 
         return response()->json(['slug' => $slug, 'valid' => $valid, 'available' => $available]);
@@ -102,4 +139,3 @@ class StoreController extends Controller
         abort_unless($request->user()->stores()->whereKey($store->id)->exists(), 403);
     }
 }
-
