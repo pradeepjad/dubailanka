@@ -34,6 +34,23 @@ class RegistrationController extends Controller
         return Inertia::render('Auth/Register');
     }
 
+    public function claimInvitation(Request $request, User $user, StartRegistration $startRegistration): RedirectResponse
+    {
+        abort_if($user->hasPassword(), 422, 'This seller account has already been claimed. Please log in.');
+        abort_if($user->isClosed() || $user->isSuspended(), 403, 'This account is not available.');
+
+        $startRegistration->execute($user->name, $user->email);
+
+        $request->session()->put([
+            'pending_registration_name' => $user->name,
+            'pending_registration_email' => $user->email,
+            'seller_invitation_claim' => true,
+        ]);
+        $request->session()->forget(['registration_verified','registration_verified_email']);
+
+        return redirect()->route('register');
+    }
+
     /**
      * Start a new registration or continue an existing
      * lightweight account registration.
@@ -57,6 +74,7 @@ class RegistrationController extends Controller
         $request->session()->forget([
             'registration_verified',
             'registration_verified_email',
+            'seller_invitation_claim',
         ]);
 
         return back()->with([
@@ -95,6 +113,7 @@ class RegistrationController extends Controller
             'pending_registration_email',
             'registration_verified',
             'registration_verified_email',
+            'seller_invitation_claim',
         ]);
         return redirect()->route('register');
     }
@@ -105,9 +124,17 @@ class RegistrationController extends Controller
     ): RedirectResponse {
         $data = $request->validated();
 
-        $completeRegistration->execute(
+        $invitationClaim = (bool) $request->session()->get('seller_invitation_claim', false);
+
+        $user = $completeRegistration->execute(
             $data['password']
         );
+
+        $request->session()->forget('seller_invitation_claim');
+
+        if ($invitationClaim) {
+            return redirect()->route($user->stores()->exists() ? 'seller.dashboard' : 'seller.start');
+        }
 
         return redirect()->route('home');
     }

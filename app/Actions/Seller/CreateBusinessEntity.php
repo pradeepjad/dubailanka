@@ -4,6 +4,7 @@ namespace App\Actions\Seller;
 
 use App\Models\BusinessEntity;
 use App\Models\User;
+use App\Models\SellerOnboardingHandover;
 use Illuminate\Support\Facades\DB;
 
 class CreateBusinessEntity
@@ -21,6 +22,18 @@ class CreateBusinessEntity
                 'role' => 'owner',
                 'is_primary_owner' => true,
             ]);
+
+            SellerOnboardingHandover::query()
+                ->where('status', SellerOnboardingHandover::STATUS_PENDING)
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id)->orWhere('owner_email', $user->email);
+                })
+                ->oldest()
+                ->first()?->update([
+                    'business_entity_id' => $business->id,
+                    'status' => SellerOnboardingHandover::STATUS_COMPLETED,
+                    'completed_at' => now(),
+                ]);
 
             return $business;
         });

@@ -5,6 +5,7 @@ import PublicLayout from "../../../layouts/PublicLayout";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
+import { sanitizeStoreSlugInput, slugifyStoreName } from "../../../lib/storeSlug";
 
 type Business = { id: number; name: string; legal_name: string; country_code: string };
 type StoreDraft = {
@@ -16,14 +17,6 @@ type PendingChange = { id:number; status:string; proposed_name?:string|null; pro
 type Props = { businesses: Business[]; selectedBusinessId: number; store: StoreDraft | null; pendingChange?: PendingChange | null; flash?: { success?: string } };
 
 const steps = ["Store Identity", "Contact & Location", "Branding", "Store Details", "Review"];
-const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120);
-const sanitizeSlugInput = (value: string) => value
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-{2,}/g, "-")
-    .replace(/^-+/, "")
-    .slice(0, 120);
 
 export default function Wizard({ businesses, selectedBusinessId, store, pendingChange }: Props) {
     const { props } = usePage<Props>();
@@ -55,7 +48,7 @@ export default function Wizard({ businesses, selectedBusinessId, store, pendingC
     const method = store ? "put" : "post";
 
     useEffect(() => {
-        if (!slugTouched) setSlug(slugify(name));
+        if (!slugTouched) setSlug(slugifyStoreName(name));
     }, [name, slugTouched]);
 
     useEffect(() => {
@@ -104,7 +97,7 @@ export default function Wizard({ businesses, selectedBusinessId, store, pendingC
                                         label="Unique Store Address"
                                         value={slug}
                                         disabled={identityLocked}
-                                        onChange={e=>{setSlugTouched(true);setSlug(sanitizeSlugInput(e.target.value))}}
+                                        onChange={e=>{setSlugTouched(true);setSlug(sanitizeStoreSlugInput(e.target.value))}}
                                         error={errors.slug}
                                         placeholder="ceylon-gifts"
                                         hint={slugState==="checking"?"Checking availability…":slugState==="available"?"Available — this store address can be used.":slugState==="taken"?"Already taken — please choose another store address.":slugState==="invalid"?"Use lowercase letters, numbers and hyphens only.":store ? "Draft store address can be changed. The new address must be available." : "This will become your unique Dubai Lanka store address."}
@@ -117,7 +110,7 @@ export default function Wizard({ businesses, selectedBusinessId, store, pendingC
                                         {slugTouched && (
                                             <button
                                                 type="button"
-                                                onClick={()=>{setSlugTouched(false);setSlug(slugify(name));}}
+                                                onClick={()=>{setSlugTouched(false);setSlug(slugifyStoreName(name));}}
                                                 className="cursor-pointer text-xs font-semibold text-brand-secondary hover:underline"
                                             >
                                                 Reset from store name

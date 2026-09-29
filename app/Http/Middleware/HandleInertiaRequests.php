@@ -33,6 +33,7 @@ class HandleInertiaRequests extends Middleware
                 'name' => fn () => $request->session()->get('pending_registration_name'),
                 'email' => fn () => $registrationEmail,
                 'verified' => fn () => (bool) $request->session()->get('registration_verified', false),
+                'invitation_claim' => fn () => (bool) $request->session()->get('seller_invitation_claim', false),
                 'resend_seconds' => fn () => $otp->resendSecondsRemaining($registrationEmail, 'registration'),
             ],
             'login' => [

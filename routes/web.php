@@ -10,6 +10,7 @@ use App\Http\Controllers\Seller\StoreController;
 use App\Http\Controllers\Seller\StoreSubmissionController;
 use App\Http\Controllers\Admin\StoreModerationController;
 use App\Http\Controllers\Admin\StoreChangeRequestController;
+use App\Http\Controllers\Admin\SellerOnboardingController;
 use App\Http\Middleware\EnsurePlatformAdmin;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -18,6 +19,7 @@ Route::get('/', fn () => Inertia::render('Home'))->name('home');
 Route::get('/design-system', fn () => Inertia::render('DesignSystem'));
 
 Route::middleware('guest')->group(function () {
+    Route::get('/seller-invitation/claim/{user}', [RegistrationController::class, 'claimInvitation'])->middleware('signed')->name('seller.invitation.claim');
     Route::get('/register', [RegistrationController::class, 'create'])->name('register');
     Route::post('/register', [RegistrationController::class, 'store'])->name('register.store');
     Route::post('/register/verify', [RegistrationController::class, 'verify'])->name('register.verify');
@@ -40,8 +42,22 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth', EnsurePlatformAdmin::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/onboarding', [SellerOnboardingController::class, 'index'])->name('onboarding.index');
+    Route::get('/onboarding/create', [SellerOnboardingController::class, 'create'])->name('onboarding.create');
+    Route::get('/onboarding/owner-lookup', [SellerOnboardingController::class, 'setupOwnerLookup'])->name('onboarding.owner-lookup');
+    Route::post('/onboarding', [SellerOnboardingController::class, 'store'])->name('onboarding.store');
+    Route::get('/onboarding/businesses/{business}/stores/create', [SellerOnboardingController::class, 'createStore'])->name('onboarding.businesses.stores.create');
+    Route::post('/onboarding/businesses/{business}/stores', [SellerOnboardingController::class, 'storeForBusiness'])->name('onboarding.businesses.stores.store');
+    Route::get('/onboarding/businesses/{business}/owner-lookup', [SellerOnboardingController::class, 'businessOwnerLookup'])->name('onboarding.businesses.owner-lookup');
+    Route::post('/onboarding/businesses/{business}/assign-owner', [SellerOnboardingController::class, 'assignBusiness'])->name('onboarding.businesses.assign-owner');
+    Route::get('/onboarding/stores/{store}/edit', [SellerOnboardingController::class, 'edit'])->name('onboarding.edit-store');
+    Route::put('/onboarding/stores/{store}', [SellerOnboardingController::class, 'update'])->name('onboarding.update-store');
+    Route::post('/onboarding/stores/{store}/submit', [SellerOnboardingController::class, 'submit'])->name('onboarding.submit');
+    Route::get('/onboarding/stores/{store}/owner-lookup', [SellerOnboardingController::class, 'ownerLookup'])->name('onboarding.owner-lookup');
+    Route::post('/onboarding/stores/{store}/assign-owner', [SellerOnboardingController::class, 'assign'])->name('onboarding.assign-owner');
     Route::get('/stores', [StoreModerationController::class, 'index'])->name('stores.index');
     Route::get('/stores/{store}', [StoreModerationController::class, 'show'])->name('stores.show');
+    Route::post('/stores/{store}/assign-admin', [StoreModerationController::class, 'assignAdmin'])->name('stores.assign-admin');
     Route::post('/stores/{store}/start-review', [StoreModerationController::class, 'start'])->name('stores.start-review');
     Route::post('/stores/{store}/approve', [StoreModerationController::class, 'approve'])->name('stores.approve');
     Route::post('/stores/{store}/needs-changes', [StoreModerationController::class, 'needsChanges'])->name('stores.needs-changes');

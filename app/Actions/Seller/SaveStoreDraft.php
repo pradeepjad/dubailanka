@@ -18,19 +18,28 @@ class SaveStoreDraft
             $store ??= new Store();
 
             $attributes = Arr::except($data, ['logo', 'cover']);
-            $attributes['status'] = Store::STATUS_DRAFT;
+            $originalStatus = $store->status;
+            $attributes['status'] = $isNew ? Store::STATUS_DRAFT : $originalStatus;
+            $hasFileChange = false;
 
             if (($data['logo'] ?? null) instanceof UploadedFile) {
                 if ($store->logo_path) Storage::disk('public')->delete($store->logo_path);
                 $attributes['logo_path'] = $data['logo']->store('stores/logos', 'public');
+                $hasFileChange = true;
             }
 
             if (($data['cover'] ?? null) instanceof UploadedFile) {
                 if ($store->cover_path) Storage::disk('public')->delete($store->cover_path);
                 $attributes['cover_path'] = $data['cover']->store('stores/covers', 'public');
+                $hasFileChange = true;
             }
 
-            $store->fill($attributes)->save();
+            $store->fill($attributes);
+            $hasRealChange = $store->isDirty() || $hasFileChange;
+            if (! $isNew && $originalStatus === Store::STATUS_NEEDS_CHANGES && $hasRealChange) {
+                $store->review_changes_saved_at = now();
+            }
+            $store->save();
 
             if ($isNew) {
                 $store->memberships()->create([

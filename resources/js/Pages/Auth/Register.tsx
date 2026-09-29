@@ -6,7 +6,7 @@ import OtpInput from '../../components/auth/OtpInput';
 import PasswordInput from '../../components/auth/PasswordInput';
 import ResendControl from '../../components/auth/ResendControl';
 
-type P = { registration?: { pending?: boolean; name?: string | null; email?: string | null; verified?: boolean; resend_seconds?: number } };
+type P = { registration?: { pending?: boolean; name?: string | null; email?: string | null; verified?: boolean; invitation_claim?: boolean; resend_seconds?: number } };
 
 export default function Register() {
     const { props } = usePage<P>();
@@ -24,8 +24,8 @@ export default function Register() {
             </>}</Form>
             <Foot href="/login" text="Already have an account?" action="Log in" />
         </> : step === 2 ? <>
-            <button type="button" onClick={() => router.post('/register/cancel')} className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-[#6b7280]"><ArrowLeft size={16} /> Change email</button>
-            <Header eyebrow="Email verification" title="Verify your email" text={<>We sent a 6-digit verification code to <b className="text-[#111827]">{r.email}</b></>} />
+{!r.invitation_claim && <button type="button" onClick={() => router.post('/register/cancel')} className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-[#6b7280]"><ArrowLeft size={16} /> Change email</button>}
+            <Header eyebrow={r.invitation_claim ? "Seller invitation" : "Email verification"} title={r.invitation_claim ? "Claim your Dubai Lanka account" : "Verify your email"} text={<>We sent a 6-digit verification code to <b className="text-[#111827]">{r.email}</b>{r.invitation_claim ? ". This email is linked to your assigned seller account." : ""}</>} />
             <OtpInput value={otp} onChange={setOtp} />
             <Form action="/register/verify" method="post" className="mt-6">{({ errors, processing }) => <>
                 <input type="hidden" name="email" value={r.email ?? ''} /><input type="hidden" name="code" value={otp} />
@@ -41,14 +41,14 @@ export default function Register() {
                 <p className="text-xs text-[#6b7280]">Use at least 8 characters.</p>
                 <Submit processing={processing} text="Create Account" busy="Creating account..." />
             </>}</Form>
-            <button
+{!r.invitation_claim && <button
                 type="button"
                 onClick={() => router.post('/register/cancel')}
                 className="mt-6 inline-flex w-full items-center justify-center gap-2 text-sm font-semibold text-[#6b7280] transition hover:text-[#005bff]"
             >
                 <ArrowLeft size={16} />
                 Start again with another email
-            </button>
+            </button>}
         </>}
     </AuthLayout>;
 }

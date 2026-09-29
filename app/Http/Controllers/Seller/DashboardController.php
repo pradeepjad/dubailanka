@@ -24,7 +24,7 @@ class DashboardController extends Controller
                 ])->limit(1),
             ])
             ->orderBy('stores.name')
-            ->get(['stores.id', 'stores.business_entity_id', 'stores.name', 'stores.slug', 'stores.status', 'stores.logo_path'])
+            ->get(['stores.id', 'stores.business_entity_id', 'stores.name', 'stores.slug', 'stores.status', 'stores.logo_path', 'stores.review_changes_saved_at'])
             ->map(function (Store $store) {
                 $change = $store->changeRequests->first();
                 return [
@@ -39,6 +39,8 @@ class DashboardController extends Controller
                     'status_note' => $store->statusHistories->first()?->note,
                     'change_status' => $change?->status,
                     'change_note' => $change?->admin_note,
+                    'can_resubmit' => $store->status === Store::STATUS_DRAFT
+                        || ($store->status === Store::STATUS_NEEDS_CHANGES && $store->review_changes_saved_at !== null),
                 ];
             })->values();
 

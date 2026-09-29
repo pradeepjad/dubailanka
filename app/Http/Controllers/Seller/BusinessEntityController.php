@@ -6,6 +6,7 @@ use App\Actions\Seller\CreateBusinessEntity;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Seller\StoreBusinessEntityRequest;
 use App\Models\BusinessEntity;
+use App\Models\SellerOnboardingHandover;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -32,9 +33,18 @@ class BusinessEntityController extends Controller
             ->orderByDesc('updated_at')
             ->get(['id', 'business_entity_id', 'name', 'slug', 'status', 'logo_path', 'updated_at']);
 
+        $pendingHandover = SellerOnboardingHandover::query()
+            ->where('status', SellerOnboardingHandover::STATUS_PENDING)
+            ->where(function ($query) use ($request) {
+                $query->where('user_id', $request->user()->id)
+                    ->orWhere('owner_email', $request->user()->email);
+            })
+            ->exists();
+
         return Inertia::render('Seller/Start', [
             'businesses' => $businesses,
             'stores' => $stores,
+            'pendingHandover' => $pendingHandover,
         ]);
     }
 

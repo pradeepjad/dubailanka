@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
@@ -29,6 +30,11 @@ class Store extends Model
     ];
 
     protected $appends = ['logo_url', 'cover_url'];
+
+    protected function casts(): array
+    {
+        return ['review_changes_saved_at' => 'datetime'];
+    }
 
     public function businessEntity(): BelongsTo
     {
@@ -53,6 +59,16 @@ class Store extends Model
     public function slugHistories(): HasMany
     {
         return $this->hasMany(StoreSlugHistory::class)->latest('changed_at');
+    }
+
+    public function adminAssignment(): HasOne
+    {
+        return $this->hasOne(StoreAdminAssignment::class);
+    }
+
+    public function adminAssignmentHistories(): HasMany
+    {
+        return $this->hasMany(StoreAdminAssignmentHistory::class)->latest('assigned_at');
     }
 
     public function users(): BelongsToMany
