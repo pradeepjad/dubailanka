@@ -1,6 +1,6 @@
 import { Form, Head, Link } from "@inertiajs/react";
 import { useEffect, useState, type ReactNode } from "react";
-import PublicLayout from "../../../layouts/PublicLayout";
+import AdminLayout from "../../../layouts/AdminLayout";
 import {
     sanitizeStoreSlugInput,
     slugifyStoreName,
@@ -115,7 +115,7 @@ export default function Create() {
         return () => clearTimeout(timer);
     }, [storeSlug, intent]);
     return (
-        <PublicLayout>
+        <AdminLayout>
             <Head title="Create Seller Setup | Dubai Lanka" />
             <main className="bg-surface-subtle py-10">
                 <div className="mx-auto max-w-4xl px-4">
@@ -610,6 +610,6 @@ export default function Create() {
                     </Form>
                 </div>
             </main>
-        </PublicLayout>
+        </AdminLayout>
     );
 }

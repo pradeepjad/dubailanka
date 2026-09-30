@@ -25,6 +25,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => ['user' => fn () => $request->user()?->only('id', 'name', 'email', 'status', 'suspension_reason')],
+            'sellerWorkspace' => fn () => $request->user() ? $this->sellerWorkspace($request) : null,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
             ],
@@ -45,5 +46,25 @@ class HandleInertiaRequests extends Middleware
                 'resend_seconds' => fn () => $otp->resendSecondsRemaining($resetEmail, 'password_reset'),
             ],
         ];
+    }
+
+    private function sellerWorkspace(Request $request): array
+    {
+        $stores = $request->user()->stores()
+            ->with('businessEntity:id,legal_name,trading_name')
+            ->orderBy('stores.name')
+            ->get(['stores.id', 'stores.business_entity_id', 'stores.name'])
+            ->map(fn ($store) => [
+                'id' => $store->id,
+                'name' => $store->name,
+                'business_name' => $store->businessEntity->trading_name ?: $store->businessEntity->legal_name,
+            ])->values();
+
+        $active = $request->session()->get('seller_active_store_id');
+        if (! $stores->contains('id', $active)) {
+            $active = $stores->first()['id'] ?? null;
+        }
+
+        return ['stores' => $stores, 'activeStoreId' => $active];
     }
 }

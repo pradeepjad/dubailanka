@@ -1,7 +1,7 @@
 import { Form, Head, Link, usePage } from "@inertiajs/react";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, ImagePlus, Save, Store as StoreIcon } from "lucide-react";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import PublicLayout from "../../../layouts/PublicLayout";
+import SellerLayout from "../../../layouts/SellerLayout";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
@@ -76,7 +76,7 @@ export default function Wizard({ businesses, selectedBusinessId, store, pendingC
         else { setCoverFile(file); setCoverName(file?.name ?? ""); }
     };
 
-    return <PublicLayout>
+    return <SellerLayout>
         <Head title={`${store ? "Edit" : "Create"} Store | Dubai Lanka`} />
         <main className="bg-surface-subtle py-8 sm:py-12">
             <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -133,5 +133,5 @@ export default function Wizard({ businesses, selectedBusinessId, store, pendingC
                 </div>
             </div>
         </main>
-    </PublicLayout>;
+    </SellerLayout>;
 }

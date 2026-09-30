@@ -1,7 +1,7 @@
 import { Form, Head, Link } from "@inertiajs/react";
 import { ArrowLeft, Building2, UserRound } from "lucide-react";
 import { useState } from "react";
-import PublicLayout from "../../../layouts/PublicLayout";
+import SellerLayout from "../../../layouts/SellerLayout";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
@@ -19,7 +19,7 @@ export default function Create({ initialType, accountEmail }: Props) {
     const phonePlaceholder = countryCode === "LK" ? "+94 77 123 4567" : "+971 50 123 4567";
 
     return (
-        <PublicLayout>
+        <SellerLayout>
             <Head title="Create Business | Dubai Lanka" />
 
             <main className="bg-surface-subtle py-8 sm:py-12">
@@ -154,6 +154,6 @@ export default function Create({ initialType, accountEmail }: Props) {
                     </p>
                 </div>
             </main>
-        </PublicLayout>
+        </SellerLayout>
     );
 }

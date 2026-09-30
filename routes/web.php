@@ -9,6 +9,7 @@ use App\Http\Controllers\Seller\DashboardController;
 use App\Http\Controllers\Seller\StoreController;
 use App\Http\Controllers\Seller\StoreSubmissionController;
 use App\Http\Controllers\Admin\StoreModerationController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\StoreChangeRequestController;
 use App\Http\Controllers\Admin\SellerOnboardingController;
 use App\Http\Middleware\EnsurePlatformAdmin;
@@ -42,6 +43,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth', EnsurePlatformAdmin::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', AdminDashboardController::class)->name('dashboard');
     Route::get('/onboarding', [SellerOnboardingController::class, 'index'])->name('onboarding.index');
     Route::get('/onboarding/create', [SellerOnboardingController::class, 'create'])->name('onboarding.create');
     Route::get('/onboarding/owner-lookup', [SellerOnboardingController::class, 'setupOwnerLookup'])->name('onboarding.owner-lookup');
@@ -77,12 +79,14 @@ Route::middleware('auth')->group(function () {
     Route::prefix('seller')->name('seller.')->group(function () {
         Route::get('/start', [BusinessEntityController::class, 'index'])->name('start');
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::post('/active-store', [DashboardController::class, 'activeStore'])->name('active-store');
         Route::get('/businesses/create', [BusinessEntityController::class, 'create'])->name('businesses.create');
         Route::post('/businesses', [BusinessEntityController::class, 'store'])->name('businesses.store');
 
         Route::get('/stores/slug-availability', [StoreController::class, 'slugAvailability'])->name('stores.slug-availability');
         Route::get('/stores/create', [StoreController::class, 'create'])->name('stores.create');
         Route::post('/stores', [StoreController::class, 'store'])->name('stores.store');
+        Route::get('/stores/{store}', [DashboardController::class, 'show'])->name('stores.show');
         Route::get('/stores/{store}/edit', [StoreController::class, 'edit'])->name('stores.edit');
         Route::put('/stores/{store}', [StoreController::class, 'update'])->name('stores.update');
         Route::post('/stores/{store}/submit', [StoreSubmissionController::class, 'submit'])->name('stores.submit');

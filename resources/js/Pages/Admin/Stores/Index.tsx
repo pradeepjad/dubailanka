@@ -1,5 +1,5 @@
 import {Head,Link} from '@inertiajs/react';
-import PublicLayout from '../../../layouts/PublicLayout';
+import AdminLayout from '../../../layouts/AdminLayout';
 
 type S={
     id:number;name:string;slug:string;status:string;business_name:string;country_code:string;
@@ -8,7 +8,7 @@ type S={
 };
 
 export default function Index({stores}:{stores:S[]}) {
-    return <PublicLayout>
+    return <AdminLayout>
         <Head title="Store Moderation | Dubai Lanka"/>
         <main className="bg-surface-subtle py-10">
             <div className="mx-auto max-w-6xl px-4">
@@ -34,5 +34,5 @@ export default function Index({stores}:{stores:S[]}) {
                 </div>
             </div>
         </main>
-    </PublicLayout>;
+    </AdminLayout>;
 }
